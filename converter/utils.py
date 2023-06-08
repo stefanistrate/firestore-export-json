@@ -1,6 +1,7 @@
 import base64
 import calendar
 import datetime
+import hashlib
 import mimetypes
 import os
 from typing import Dict
@@ -76,14 +77,9 @@ def serialize_json(obj, dest_dir):
         extension = mimetypes.guess_extension(mime_type)
         if extension is None or extension == ".bin":
             extension = ""
-        output_filename = (
-            base64.b64encode(obj).decode()[:15].replace("/", "_") +
-            extension
-        )
+        output_filename = hashlib.md5(obj).hexdigest() + extension
         with open(os.path.join(blob_dir, output_filename), "wb") as out:
             out.write(obj)
-
-        encoded = base64.b64encode(obj)
-        return encoded.decode()
+        return "blob/" + output_filename
 
     return str(obj)
