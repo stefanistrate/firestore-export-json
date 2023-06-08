@@ -9,7 +9,7 @@ Convert google firestore/datastore LevelDB exports to JSON data.
 
 ## Dependencies
 
-* Python  3.9
+* Python  3.9+
 *  [Python Google Appengine](https://github.com/GoogleCloudPlatform/appengine-python-standard)
 
 ## Setup
