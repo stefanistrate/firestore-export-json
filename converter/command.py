@@ -1,6 +1,7 @@
 import argparse
 import json
 import os
+import shutil
 import sys
 from functools import partial
 from multiprocessing import Pool, cpu_count, Value
@@ -87,6 +88,9 @@ def main(args=None):
                 try:
                     print(f"Deleting file {f.name}")
                     f.unlink()
+                    f_dir = str(f)[:-5]
+                    print(f"Deleting directory {f.name[:-5]}")
+                    shutil.rmtree(f_dir)
                 except OSError as e:
                     print("Error: %s : %s" % (f, e.strerror))
 
@@ -142,7 +146,10 @@ def process_file(source_dir: str, dest_dir: str, no_check_crc: bool, filename: s
     out_file_path = os.path.join(dest_dir, filename + ".json")
     with open(out_file_path, "w", encoding="utf8") as out:
         out.write(
-            json.dumps(json_tree, default=serialize_json, ensure_ascii=False, indent=2)
+            json.dumps(json_tree,
+                       default=lambda obj: serialize_json(obj, dest_dir, filename),
+                       ensure_ascii=False,
+                       indent=2)
         )
     num_files_processed.value += 1
     if num_files.value > 0:

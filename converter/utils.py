@@ -1,8 +1,10 @@
-from base64 import b64decode
+import base64
 import calendar
 import datetime
+import os
 from typing import Dict
 
+from google.appengine.api.datastore_types import Blob
 from google.appengine.datastore import entity_bytes_pb2 as entity_pb2
 from google.protobuf.json_format import MessageToDict
 
@@ -31,7 +33,7 @@ def get_dest_dict(key, json_tree):
 def get_value(value: Dict, raw=False):
     v = value.get("stringValue")
     if v:
-        decoded_value = b64decode(v)
+        decoded_value = base64.b64decode(v)
         return decoded_value if raw else decoded_value.decode("utf-8", errors="ignore")
 
     v = value.get("int64Value")
@@ -57,10 +59,17 @@ def embedded_entity_to_dict(embedded_entity, data):
     return data
 
 
-def serialize_json(obj):
+def serialize_json(obj, dest_dir, filename):
     if isinstance(obj, datetime.datetime):
         if obj.utcoffset() is not None:
             obj = obj - obj.utcoffset()
         millis = int(calendar.timegm(obj.timetuple()) * 1000 + obj.microsecond / 1000)
         return millis
+    if isinstance(obj, Blob):
+        encoded = base64.b64encode(obj)
+        blob_dir = os.path.join(dest_dir, filename)
+        os.makedirs(blob_dir, exist_ok=True)
+        with open(os.path.join(blob_dir, encoded.decode()[:10].replace("/", "_") + ".jpg"), "wb") as out:
+            out.write(base64.b64decode(encoded))
+        return encoded.decode()
     return str(obj)

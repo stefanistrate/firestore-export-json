@@ -39,6 +39,7 @@ Convert google firestore/datastore LevelDB exports to JSON data.
 
    ```shell
    $ pip install -e .
+   $ brew install libmagic
    ```
 
 ### Method 2 - Make
