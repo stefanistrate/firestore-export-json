@@ -88,11 +88,10 @@ def main(args=None):
                 try:
                     print(f"Deleting file {f.name}")
                     f.unlink()
-                    f_dir = str(f)[:-5]
-                    print(f"Deleting directory {f.name[:-5]}")
-                    shutil.rmtree(f_dir)
                 except OSError as e:
                     print("Error: %s : %s" % (f, e.strerror))
+            print(f"Deleting blob directory")
+            shutil.rmtree(Path(dest_dir) / "blob", ignore_errors=True)
 
         process_files(
             source_dir=source_dir,
@@ -147,7 +146,7 @@ def process_file(source_dir: str, dest_dir: str, no_check_crc: bool, filename: s
     with open(out_file_path, "w", encoding="utf8") as out:
         out.write(
             json.dumps(json_tree,
-                       default=lambda obj: serialize_json(obj, dest_dir, filename),
+                       default=lambda obj: serialize_json(obj, dest_dir),
                        ensure_ascii=False,
                        indent=2)
         )

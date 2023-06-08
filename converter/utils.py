@@ -1,12 +1,14 @@
 import base64
 import calendar
 import datetime
+import mimetypes
 import os
 from typing import Dict
 
 from google.appengine.api.datastore_types import Blob
 from google.appengine.datastore import entity_bytes_pb2 as entity_pb2
 from google.protobuf.json_format import MessageToDict
+import magic
 
 
 def get_dest_dict(key, json_tree):
@@ -59,7 +61,7 @@ def embedded_entity_to_dict(embedded_entity, data):
     return data
 
 
-def serialize_json(obj, dest_dir, filename):
+def serialize_json(obj, dest_dir):
     if isinstance(obj, datetime.datetime):
         if obj.utcoffset() is not None:
             obj = obj - obj.utcoffset()
@@ -67,9 +69,18 @@ def serialize_json(obj, dest_dir, filename):
         return millis
 
     if isinstance(obj, Blob):
-        blob_dir = os.path.join(dest_dir, filename)
+        blob_dir = os.path.join(dest_dir, "blob")
         os.makedirs(blob_dir, exist_ok=True)
-        with open(os.path.join(blob_dir, base64.b64encode(obj).decode()[:15].replace("/", "_") + ".jpg"), "wb") as out:
+
+        mime_type = magic.from_buffer(obj, mime=True)
+        extension = mimetypes.guess_extension(mime_type)
+        if extension is None or extension == ".bin":
+            extension = ""
+        output_filename = (
+            base64.b64encode(obj).decode()[:15].replace("/", "_") +
+            extension
+        )
+        with open(os.path.join(blob_dir, output_filename), "wb") as out:
             out.write(obj)
 
         encoded = base64.b64encode(obj)
