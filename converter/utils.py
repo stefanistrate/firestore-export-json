@@ -65,11 +65,14 @@ def serialize_json(obj, dest_dir, filename):
             obj = obj - obj.utcoffset()
         millis = int(calendar.timegm(obj.timetuple()) * 1000 + obj.microsecond / 1000)
         return millis
+
     if isinstance(obj, Blob):
-        encoded = base64.b64encode(obj)
         blob_dir = os.path.join(dest_dir, filename)
         os.makedirs(blob_dir, exist_ok=True)
-        with open(os.path.join(blob_dir, encoded.decode()[:10].replace("/", "_") + ".jpg"), "wb") as out:
-            out.write(base64.b64decode(encoded))
+        with open(os.path.join(blob_dir, base64.b64encode(obj).decode()[:15].replace("/", "_") + ".jpg"), "wb") as out:
+            out.write(obj)
+
+        encoded = base64.b64encode(obj)
         return encoded.decode()
+
     return str(obj)
